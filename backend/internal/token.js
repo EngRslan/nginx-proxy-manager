@@ -4,7 +4,7 @@ const userModel  = require('../models/user');
 const authModel  = require('../models/auth');
 const helpers    = require('../lib/helpers');
 const TokenModel = require('../models/token');
-
+const ldap		 = require('./auth-ldap')
 module.exports = {
 
 	/**
@@ -81,7 +81,36 @@ module.exports = {
 				}
 			});
 	},
+	getTokenFromLDAP: (data, issuer) => {
+		let Token = new TokenModel();
 
+		data.scope  = data.scope || 'user';
+		data.expiry = data.expiry || '1d';
+
+		return ldap.loginLDap(data.identity,data.secret).then(res=>{
+			let expiry = helpers.parseDatePeriod(data.expiry);
+			if (expiry === null) {
+				throw new error.AuthError('Invalid expiry time: ' + data.expiry);
+			}
+
+			return Token.create({
+				iss:   issuer || 'api',
+				attrs: {
+					id: 1
+				},
+				scope:     [data.scope],
+				expiresIn: data.expiry
+			})
+				.then((signed) => {
+					return {
+						token:   signed.token,
+						expires: expiry.toISOString()
+					};
+				});
+		}).catch(err=>{
+			throw new error.AuthError(err);
+		})
+	},
 	/**
 	 * @param {Access} access
 	 * @param {Object} [data]
