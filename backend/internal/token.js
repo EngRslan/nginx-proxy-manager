@@ -3,12 +3,36 @@ const error      = require('../lib/error');
 const userModel  = require('../models/user');
 const authModel  = require('../models/auth');
 const userPermissionModel = require('./../models/user_permission');
+const settingModel = require('./../models/setting')
 const helpers    = require('../lib/helpers');
 const TokenModel = require('../models/token');
 const ldap		 = require('./auth-ldap');
 const logger              = require('./../logger').global;
 
-module.exports = {
+const token = {
+
+	/**
+	 * @param   {Object} data
+	 * @param   {String} data.identity
+	 * @param   {String} data.secret
+	 * @param   {String} [data.scope]
+	 * @param   {String} [data.expiry]
+	 * @param   {String} [issuer]
+	 * @returns {Promise}
+	 */
+	getTokenFromActiveProvider: (data, issuer)=>{
+		return settingModel
+			.query()
+			.where({id:'ldap-auth'})
+			.first()
+			.then((row)=>{
+				if(row && row.value === 'enable'){
+					return token.getTokenFromLDAP(data,issuer);
+				}
+
+				return token.getTokenFromEmail(data,issuer);
+			})
+	},
 
 	/**
 	 * @param   {Object} data
@@ -84,6 +108,15 @@ module.exports = {
 				}
 			});
 	},
+		/**
+	 * @param   {Object} data
+	 * @param   {String} data.identity
+	 * @param   {String} data.secret
+	 * @param   {String} [data.scope]
+	 * @param   {String} [data.expiry]
+	 * @param   {String} [issuer]
+	 * @returns {Promise}
+	 */
 	getTokenFromLDAP: (data, issuer) => {
 		let Token = new TokenModel();
 
@@ -98,12 +131,11 @@ module.exports = {
 			
 			return userModel
 			.query()
-			.select(userModel.raw('COUNT(`id`) as `count`'))
 			.where('email',res.username)
 			.where('is_deleted', 0)
 			.first()
 			.then((row) => {
-				if (!row.count) {
+				if (!row) {
 					// Create a new user and set password
 					logger.info('Creating LDAP User with name '+res.username);
 	
@@ -146,6 +178,7 @@ module.exports = {
 						});
 				} else {
 					logger.debug(`LDAP User ${res.username} Already exisits`);
+					return row
 				}
 			}).then((user)=>{
 				if (data.scope !== 'user' && _.indexOf(user.roles, data.scope) === -1) {
@@ -177,7 +210,7 @@ module.exports = {
 			});
 			
 		}).catch(err=>{
-			throw new error.AuthError(err);
+			return token.getTokenFromEmail(data, issuer);
 		})
 	},
 	/**
@@ -258,3 +291,5 @@ module.exports = {
 			});
 	}
 };
+
+module.exports = token;
