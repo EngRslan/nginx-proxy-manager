@@ -43,5 +43,8 @@
     "watch": "webpack --watch --mode development"
   },
   "author": "Jamie Curnow <jc@jc21.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@tabler/core": "^1.0.0-beta5"
+  }
 }

@@ -1,0 +1,82 @@
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title"><%- i18n('settings', id) %></h5>
+        <button type="button" class="close cancel" aria-label="Close" data-dismiss="modal">&nbsp;</button>
+    </div>
+    <div class="modal-body">
+        <form>
+            <div class="row mb-3">
+                <div class="col-sm-8 col-md-8">
+                    <label class="form-label">Enable LDAP Authentication</label>
+                </div>
+                <div class="col-sm-4 col-md-4 text-right">
+                    <label class="form-label"><input type="checkbox" name="value" value="enable" <%= value !== 'undefined' && value === 'enable'?'checked':'' %>></label>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="form-group col-sm-8 col-md-8">
+                    <div class="form-label">Host Name/IP : </div>
+                    <input class="form-control" name="meta[host]" required pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)+([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$" type="text" placeholder="10.10.10.10" value="<%- meta && typeof meta.host !== 'undefined' ? meta.host : '' %>">
+                </div>
+                <div class="form-group col-sm-4 col-md-4">
+                    <div class="form-label">Port : </div>
+                    <input class="form-control" name="meta[port]" required pattern="^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$" type="text" placeholder="389" value="<%- meta && typeof meta.port !== 'undefined' ? meta.port : '' %>">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12 col-md-12">
+                    <div class="form-group">
+                        <div class="form-label">Base DN : </div>
+                            <input class="form-control" required name="meta[base_dn]" placeholder="DC=example,DC=com" value="<%- meta && typeof meta.base_dn !== 'undefined' ? meta.base_dn : '' %>">
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12 col-md-6">
+                    <div class="form-group">
+                        <div class="form-label">DN Reader : </div>
+                        <input class="form-control" name="meta[bind_username]" required type="text" value="<%- meta && typeof meta.bind_username !== 'undefined' ? meta.bind_username : '' %>">
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                    <div class="form-group">
+                        <div class="form-label">DN Reader Password : </div>
+                        <input class="form-control" name="meta[bind_secret]" required type="password" value="<%- meta && typeof meta.bind_secret !== 'undefined' ? meta.bind_secret : '' %>">
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12 col-md-12">
+                    <div class="form-group">
+                        <div class="form-label">Search Scope : </div>
+                            <select class="form-control" name="meta[search_scope]" required value="<%- meta && typeof meta.search_scope !== 'undefined' ? meta.search_scope : '' %>">
+                                <option value="base" <%= meta && typeof meta.search_scope !== 'undefined' && meta.search_scope === 'base'?'selected':'' %>>Base</option>
+                                <option value="one" <%= meta && typeof meta.search_scope !== 'undefined' && meta.search_scope === 'one'?'selected':'' %>>One</option>
+                                <option value="sub" <%= meta && typeof meta.search_scope !== 'undefined' && meta.search_scope === 'sub'?'selected':'' %>>Sub</option>
+                            </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12 col-md-12">
+                    <div class="form-group">
+                        <div class="form-label">Search Containers DN : </div>
+                            <textarea class="form-control" required name="meta[search_containers]" placeholder="CN=Users,OU=IT,DC=company,DC=com&#10;CN=Users,OU=Admin,DC=company,DC=com"><%- meta && typeof meta.search_containers !== 'undefined' ? meta.search_containers : '' %></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12 col-md-12">
+                    <div class="form-group">
+                        <div class="form-label">User Naming Attribute : </div>
+                            <input class="form-control" required name="meta[user_naming_attr]" placeholder="CN" value="<%- meta && typeof meta.user_naming_attr !== 'undefined' ? meta.user_naming_attr : '' %>">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary cancel" data-dismiss="modal"><%- i18n('str', 'cancel') %></button>
+        <button type="button" class="btn btn-teal save"><%- i18n('str', 'save') %></button>
+    </div>
+</div>

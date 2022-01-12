@@ -9,6 +9,10 @@
         <% if (id === 'default-site') { %>
             <%- i18n('settings', 'default-site-' + value) %>
         <% } %>
+        <% if (id === 'ldap-auth') { %>
+            <%- i18n('str', value) %>
+        <% } %>
+
     </div>
 </td>
 <td class="text-right">

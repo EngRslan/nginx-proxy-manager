@@ -154,7 +154,32 @@ const setupDefaultSettings = () => {
 			if (debug_mode) {
 				logger.debug('Default setting setup not required');
 			}
-		});
+		}).then(()=>{
+			return settingModel
+			.query()
+			.select(settingModel.raw('COUNT(`id`) as `count`'))
+			.where({id: 'ldap-auth'})
+			.first()
+			.then((row)=>{
+				if(!row.count){
+					settingModel
+					.query()
+					.insert({
+						id:          'ldap-auth',
+						name:        'LDAP Authentication',
+						description: 'Allow LDAP Users to Authenticate from LDAP Server',
+						value:       'disable',
+						meta:        {},
+					}).then(()=>{
+						logger.info('LDAP Authentication settings added');
+					})
+				}
+				if (debug_mode) {
+					logger.debug('LDAP Authentication setup not required');
+				}
+			});
+
+		}) 
 };
 
 /**

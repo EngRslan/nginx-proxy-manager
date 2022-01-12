@@ -2,9 +2,12 @@ const _          = require('lodash');
 const error      = require('../lib/error');
 const userModel  = require('../models/user');
 const authModel  = require('../models/auth');
+const userPermissionModel = require('./../models/user_permission');
 const helpers    = require('../lib/helpers');
 const TokenModel = require('../models/token');
-const ldap		 = require('./auth-ldap')
+const ldap		 = require('./auth-ldap');
+const logger              = require('./../logger').global;
+
 module.exports = {
 
 	/**
@@ -87,26 +90,92 @@ module.exports = {
 		data.scope  = data.scope || 'user';
 		data.expiry = data.expiry || '1d';
 
-		return ldap.loginLDap(data.identity,data.secret).then(res=>{
+		return ldap.LDAPAuthenticateUser(data.identity,data.secret).then(res=>{
 			let expiry = helpers.parseDatePeriod(data.expiry);
 			if (expiry === null) {
 				throw new error.AuthError('Invalid expiry time: ' + data.expiry);
 			}
-
-			return Token.create({
-				iss:   issuer || 'api',
-				attrs: {
-					id: 1
-				},
-				scope:     [data.scope],
-				expiresIn: data.expiry
-			})
-				.then((signed) => {
-					return {
-						token:   signed.token,
-						expires: expiry.toISOString()
+			
+			return userModel
+			.query()
+			.select(userModel.raw('COUNT(`id`) as `count`'))
+			.where('email',res.username)
+			.where('is_deleted', 0)
+			.first()
+			.then((row) => {
+				if (!row.count) {
+					// Create a new user and set password
+					logger.info('Creating LDAP User with name '+res.username);
+	
+					let data = {
+						is_deleted: 0,
+						email:      res.username,
+						name:       res.username,
+						nickname:   res.username,
+						avatar:     '',
+						roles:      ['user'],
 					};
-				});
+	
+					return userModel
+						.query()
+						.insertAndFetch(data)
+						.then((user) => {
+							return authModel
+								.query()
+								.insert({
+									user_id: user.id,
+									type:    'ldap',
+									secret:  '',
+									meta:    {},
+								})
+								.then(() => {
+									return userPermissionModel.query().insert({
+										user_id:           user.id,
+										visibility:        'created',
+										proxy_hosts:       'hidden',
+										redirection_hosts: 'hidden',
+										dead_hosts:        'hidden',
+										streams:           'hidden',
+										access_lists:      'hidden',
+										certificates:      'hidden',
+									});
+								});
+						})
+						.then(() => {
+							logger.info(`LDAP User ${res.username} setup completed`);
+						});
+				} else {
+					logger.debug(`LDAP User ${res.username} Already exisits`);
+				}
+			}).then((user)=>{
+				if (data.scope !== 'user' && _.indexOf(user.roles, data.scope) === -1) {
+					// The scope requested doesn't exist as a role against the user,
+					// you shall not pass.
+					throw new error.AuthError('Invalid scope: ' + data.scope);
+				}
+
+				// Create a moment of the expiry expression
+				let expiry = helpers.parseDatePeriod(data.expiry);
+				if (expiry === null) {
+					throw new error.AuthError('Invalid expiry time: ' + data.expiry);
+				}
+
+				return Token.create({
+					iss:   issuer || 'api',
+					attrs: {
+						id: user.id
+					},
+					scope:     [data.scope],
+					expiresIn: data.expiry
+				})
+					.then((signed) => {
+						return {
+							token:   signed.token,
+							expires: expiry.toISOString()
+						};
+					});
+			});
+			
 		}).catch(err=>{
 			throw new error.AuthError(err);
 		})

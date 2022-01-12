@@ -428,9 +428,14 @@ module.exports = {
      * @param model
      */
     showSettingForm: function (model) {
+        console.log(model)
         if (Cache.User.isAdmin()) {
             if (model.get('id') === 'default-site') {
                 require(['./main', './settings/default-site/main'], function (App, View) {
+                    App.UI.showModalDialog(new View({model: model}));
+                });
+            }else if(model.get('id') === 'ldap-auth'){
+                require(['./main', './settings/ldap_auth/main'], function (App, View) {
                     App.UI.showModalDialog(new View({model: model}));
                 });
             }

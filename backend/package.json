@@ -4,6 +4,7 @@
 	"description": "A beautiful interface for creating Nginx endpoints",
 	"main": "js/index.js",
 	"dependencies": {
+		"@types/ldapjs": "^2.2.2",
 		"ajv": "^6.12.0",
 		"archiver": "^5.3.0",
 		"batchflow": "^0.4.0",
