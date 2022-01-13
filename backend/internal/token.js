@@ -123,7 +123,9 @@ const token = {
 		data.scope  = data.scope || 'user';
 		data.expiry = data.expiry || '1d';
 
-		return ldap.LDAPAuthenticateUser(data.identity,data.secret).then(res=>{
+		return ldap
+		.LDAPAuthenticateUser(data.identity,data.secret)
+		.then(res=>{
 			let expiry = helpers.parseDatePeriod(data.expiry);
 			if (expiry === null) {
 				throw new error.AuthError('Invalid expiry time: ' + data.expiry);
@@ -163,7 +165,7 @@ const token = {
 								.then(() => {
 									return userPermissionModel.query().insert({
 										user_id:           user.id,
-										visibility:        'created',
+										visibility:        'user',
 										proxy_hosts:       'hidden',
 										redirection_hosts: 'hidden',
 										dead_hosts:        'hidden',
@@ -171,16 +173,23 @@ const token = {
 										access_lists:      'hidden',
 										certificates:      'hidden',
 									});
+								})
+								.then(()=>
+								{
+									  return user
 								});
 						})
-						.then(() => {
+						.then((user) => {
 							logger.info(`LDAP User ${res.username} setup completed`);
+							return user
 						});
 				} else {
 					logger.debug(`LDAP User ${res.username} Already exisits`);
 					return row
 				}
-			}).then((user)=>{
+			})
+			.then((user)=>{
+				console.log(user)
 				if (data.scope !== 'user' && _.indexOf(user.roles, data.scope) === -1) {
 					// The scope requested doesn't exist as a role against the user,
 					// you shall not pass.
@@ -210,6 +219,7 @@ const token = {
 			});
 			
 		}).catch(err=>{
+			logger.debug('LDAP Authentication Error Switching To Internal Local Authentication ' + err.toString())
 			return token.getTokenFromEmail(data, issuer);
 		})
 	},

@@ -104,30 +104,45 @@ const internalUser = {
 
 		return access.can('users:update', data.id)
 			.then(() => {
-
 				// Make sure that the user being updated doesn't change their email to another user that is already using it
 				// 1. get user we want to update
 				return internalUser.get(access, {id: data.id})
 					.then((user) => {
-
-						// 2. if email is to be changed, find other users with that email
-						if (typeof data.email !== 'undefined') {
-							data.email = data.email.toLowerCase().trim();
-
-							if (user.email !== data.email) {
-								return internalUser.isEmailAvailable(data.email, data.id)
-									.then((available) => {
-										if (!available) {
-											throw new error.ValidationError('Email address already in use - ' + data.email);
-										}
-
-										return user;
-									});
+						return authModel
+						.query()
+						.where('user_id',user.id)
+						.first()
+						.then((auth)=>{
+							if(auth && auth.type === 'ldap'){
+								data.email = user.email;
 							}
-						}
+							else if(!/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(data.email))
+							{
+								throw new error.ValidationError('Please insert a valid email');
+							}
+							return user;
+						}).then(()=>{
+							
+							// 2. if email is to be changed, find other users with that email
+							if (typeof data.email !== 'undefined') {
+								data.email = data.email.toLowerCase().trim();
 
-						// No change to email:
-						return user;
+								if (user.email !== data.email) {
+									return internalUser.isEmailAvailable(data.email, data.id)
+										.then((available) => {
+											if (!available) {
+												throw new error.ValidationError('Email address already in use - ' + data.email);
+											}
+
+											return user;
+										});
+								}
+							}
+
+							// No change to email:
+							return user;
+						})
+						
 					});
 			})
 			.then((user) => {
@@ -323,7 +338,7 @@ const internalUser = {
 					.where('is_deleted', 0)
 					.groupBy('id')
 					.omit(['is_deleted'])
-					.allowEager('[permissions]')
+					.allowEager('[permissions,auth]')
 					.orderBy('name', 'ASC');
 
 				// Query is used for searching

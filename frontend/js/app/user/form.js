@@ -14,7 +14,8 @@ module.exports = Mn.View.extend({
         buttons: '.modal-footer button',
         cancel:  'button.cancel',
         save:    'button.save',
-        error:   '.secret-error'
+        error:   '.secret-error',
+        email:   'input[name=email]'
     },
 
     events: {
@@ -104,5 +105,12 @@ module.exports = Mn.View.extend({
         if (typeof options.model === 'undefined' || !options.model) {
             this.model = new UserModel.Model();
         }
-    }
+    },
+    onRender: function() { 
+        if(this.model && this.model.attributes && this.model.attributes.auth && this.model.attributes.auth.type === 'ldap'){
+            this.ui.email.prop('readonly','readonly');
+        }
+        
+    } 
+    
 });

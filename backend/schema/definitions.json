@@ -156,6 +156,12 @@
       "minLength": 6,
       "maxLength": 100
     },
+    "identity": {
+      "description": "Email Or Username",
+      "type": "string",
+      "minLength": 6,
+      "maxLength": 100
+    },
     "password": {
       "description": "Password",
       "type": "string",

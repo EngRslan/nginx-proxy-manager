@@ -32,6 +32,9 @@
     "email": {
       "$ref": "../definitions.json#/definitions/email"
     },
+    "identity":{
+      "$ref": "../definitions.json#/definitions/identity"
+    },
     "avatar": {
       "description": "Avatar",
       "example": "http://somewhere.jpg",
@@ -140,7 +143,7 @@
             "$ref": "#/definitions/nickname"
           },
           "email": {
-            "$ref": "#/definitions/email"
+            "$ref": "#/definitions/identity"
           },
           "roles": {
             "$ref": "#/definitions/roles"

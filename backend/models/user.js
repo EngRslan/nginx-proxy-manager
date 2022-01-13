@@ -4,6 +4,7 @@
 const db             = require('../db');
 const Model          = require('objection').Model;
 const UserPermission = require('./user_permission');
+const AuthModel = require('./auth');
 const now            = require('./now_helper');
 
 Model.knex(db);
@@ -46,6 +47,17 @@ class User extends Model {
 				},
 				modify: function (qb) {
 					qb.omit(['id', 'created_on', 'modified_on', 'user_id']);
+				}
+			},
+			auth: {
+				relation:   Model.HasOneRelation,
+				modelClass: AuthModel,
+				join:       {
+					from: 'user.id',
+					to:   'auth.user_id'
+				},
+				modify: function (qb) {
+					qb.omit(['id', 'created_on', 'modified_on', 'user_id','secret','meta']);
 				}
 			}
 		};

@@ -1,7 +1,7 @@
 
 const ldap		 = require('ldapjs');
 const settingsModel = require('../models/setting')
-
+const logger        = require('./../logger').global
 const LDAP_Manager = {
     loginLDap:(username,password)=>{
 
@@ -113,6 +113,11 @@ const LDAP_Manager = {
                         connectTimeout :10000 
                     });
         
+                    ldapCLient.on('error',(e)=>{
+                        logger.debug("Ldap Client : " + e)
+                        reject(e);
+                    })
+
                     LDAP_Manager.LDAPAuthenticate(ldapCLient,setting.meta.base_dn,username,password,setting.meta.scope,setting.meta.user_naming_attr).then(res=>{
                         resolve({
                             username : res[setting.meta.user_naming_attr],

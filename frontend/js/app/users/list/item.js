@@ -64,5 +64,11 @@ module.exports = Mn.View.extend({
 
     initialize: function () {
         this.listenTo(this.model, 'change', this.render);
-    }
+        
+    },
+    onRender: function() { 
+        if(this.model && this.model.attributes && this.model.attributes.auth && this.model.attributes.auth.type === 'ldap'){
+            this.ui.password.remove();
+        }
+    } 
 });

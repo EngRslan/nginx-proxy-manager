@@ -23,7 +23,26 @@
         });
         %>
         <%- r.join(', ') %>
-    </div>
+    </div> 
+</td>
+<td>
+    <div>
+        <%
+        var authType = '';
+        if(auth){
+            switch(auth.type){
+                case 'password':
+                    authType = 'Internal User'
+                break;
+                case 'ldap':
+                    authType = 'LDAP External User'
+                break;
+            }
+        }
+            
+        %>
+        <%- authType %>
+    </div> 
 </td>
 <td class="text-right">
     <div class="item-action dropdown">

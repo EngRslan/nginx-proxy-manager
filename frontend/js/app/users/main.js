@@ -29,7 +29,7 @@ module.exports = Mn.View.extend({
     onRender: function () {
         let view = this;
 
-        App.Api.Users.getAll(['permissions'])
+        App.Api.Users.getAll(['permissions','auth'])
             .then(response => {
                 if (!view.isDestroyed() && response && response.length) {
                     view.showChildView('list_region', new ListView({
