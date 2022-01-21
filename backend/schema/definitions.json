@@ -159,7 +159,7 @@
     "identity": {
       "description": "Email Or Username",
       "type": "string",
-      "minLength": 6,
+      "minLength": 1,
       "maxLength": 100
     },
     "password": {

@@ -427,8 +427,7 @@ module.exports = {
      *
      * @param model
      */
-    showSettingForm: function (model) {
-        console.log(model)
+     showSettingForm: function (model) {
         if (Cache.User.isAdmin()) {
             if (model.get('id') === 'default-site') {
                 require(['./main', './settings/default-site/main'], function (App, View) {
@@ -439,6 +438,19 @@ module.exports = {
                     App.UI.showModalDialog(new View({model: model}));
                 });
             }
+        }
+    },
+
+    /**
+     * Settings LDAP Test
+     *
+     * @param model
+     */
+     showLDAPTestForm: function (model) {
+        if (Cache.User.isAdmin()) {
+            require(['./main', './settings/ldap_auth/test_ldap/main'], function (App, View) {
+                App.UI.showModalDialog(new View({model:model}));
+            });
         }
     },
 

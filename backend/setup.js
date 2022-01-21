@@ -169,7 +169,7 @@ const setupDefaultSettings = () => {
 						name:        'LDAP Authentication',
 						description: 'Allow LDAP Users to Authenticate from LDAP Server',
 						value:       'disable',
-						meta:        {},
+						meta:        {port:389,transport:'tcp',user_naming_attr:'CN',search_scope:'sub'},
 					}).then(()=>{
 						logger.info('LDAP Authentication settings added');
 					})

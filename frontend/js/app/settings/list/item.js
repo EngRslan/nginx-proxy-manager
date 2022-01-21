@@ -7,13 +7,28 @@ module.exports = Mn.View.extend({
     tagName:  'tr',
 
     ui: {
-        edit: 'a.edit'
+        edit: 'a.edit',
+        test_ldap : 'a.test-ldap'
     },
 
     events: {
         'click @ui.edit': function (e) {
             e.preventDefault();
             App.Controller.showSettingForm(this.model);
+        },
+
+        'click @ui.test_ldap': function(e){
+            e.preventDefault();
+            var testModel = Backbone.Model.extend({
+                defaults: function () {
+                    return {
+                        username: '',
+                        password: '',
+                        
+                    };
+                }
+            });
+            App.Controller.showLDAPTestForm(new testModel())
         }
     },
 

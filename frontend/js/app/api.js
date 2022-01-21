@@ -753,5 +753,17 @@ module.exports = {
             delete data.id;
             return fetch('put', 'settings/' + id, data);
         }
+    },
+
+    LDAP:{
+        /**
+         * @param   {Object}   data
+         * @param   {String}   data.username
+         * @param   {String}   data.password
+         * @returns {Promise}
+         */
+        test:function(data){
+            return fetch('post','settings/ldaptest',data);
+        }
     }
 };

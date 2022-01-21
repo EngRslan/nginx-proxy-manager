@@ -1,0 +1,35 @@
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title"><%- i18n('settings', 'test-ldap') %></h5>
+        <button type="button" class="close cancel" aria-label="Close" data-dismiss="modal">&nbsp;</button>
+    </div>
+    <div class="modal-body">
+        <form>
+            <div class="row mb-3">
+                <div class="col-sm-12 col-md-12">
+                    <div class="form-group">
+                        <div class="form-label">Username : <span class="form-required">*</span></div>
+                            <input class="form-control" required name="username" placeholder="Username">
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12 col-md-12">
+                    <div class="form-group">
+                        <div class="form-label">Password : <span class="form-required">*</span></div>
+                            <input type="password" class="form-control" required name="password" placeholder="Password">
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12 col-md-12">
+                    <div class="alert collapse"></div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary cancel" data-dismiss="modal"><%- i18n('str', 'cancel') %></button>
+        <button type="button" class="btn btn-teal test"><%- i18n('settings', 'test') %></button>
+    </div>
+</div>

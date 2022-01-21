@@ -50,6 +50,33 @@
             <div class="row mb-3">
                 <div class="col-sm-12 col-md-12">
                     <div class="form-group">
+                        <div class="form-label">Transport : <span class="form-required">*</span></div>
+                        <select class="form-control" name="meta[transport]" required value="<%- meta && typeof meta.transport !== 'undefined' ? meta.transport : '' %>">
+                            <option value="tcp" <%= meta && typeof meta.transport !== 'undefined' && meta.transport === 'tcp'?'selected':'' %>>Strandard</option>
+                            <option value="start-tls" <%= meta && typeof meta.transport !== 'undefined' && meta.transport === 'start-tls'?'selected':'' %>>StartTLS</option>
+                            <option value="ssl" <%= meta && typeof meta.transport !== 'undefined' && meta.transport === 'ssl'?'selected':'' %>>SSL</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="col-sm-12 col-md-12">
+                    <div class="form-group">
+                        <div class="form-label">CA Certificate : <span class="form-required">*</span></div>
+                        <Textarea class="form-control" name="meta[ca]" required><%- meta && typeof meta.ca !== 'undefined' ? meta.ca : '' %></Textarea>
+                    </div>
+                </div>
+
+                <div class="col-sm-12 col-md-12">
+                    <label class="custom-control custom-check custom-checkbox">
+                        <input type="hidden" name="meta[skip_cert_verify]" value="false">
+                        <input class="custom-control-input" name="meta[skip_cert_verify]" type="checkbox" value="true" <%= meta && typeof meta.skip_cert_verify !== 'undefined' && meta.skip_cert_verify?'checked':'' %>>
+                        <div class="custom-control-label">Skip Certificate Verification </div>
+                    </label>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12 col-md-12">
+                    <div class="form-group">
                         <div class="form-label">Search Scope : <span class="form-required">*</span></div>
                             <select class="form-control" name="meta[search_scope]" required value="<%- meta && typeof meta.search_scope !== 'undefined' ? meta.search_scope : '' %>">
                                 <option value="base" <%= meta && typeof meta.search_scope !== 'undefined' && meta.search_scope === 'base'?'selected':'' %>>Base</option>

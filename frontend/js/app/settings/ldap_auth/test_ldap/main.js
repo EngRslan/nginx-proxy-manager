@@ -1,5 +1,5 @@
 const Mn       = require('backbone.marionette');
-const App      = require('../../main');
+const App      = require('../../../main');
 const template = require('./main.ejs');
 
 require('jquery-serializejson');
@@ -14,23 +14,15 @@ module.exports = Mn.View.extend({
         buttons:  '.modal-footer button',
         cancel:   'button.cancel',
         save:     'button.save',
-        options:  '.option-item',
-        value:    'input[name="value"]',
-        redirect: '.redirect-input',
-        html:     '.html-content'
+        alert:    '.alert'
     },
 
     events: {
-        'change @ui.value': function (e) {
-            let val = this.ui.value.filter(':checked').val();
-            this.ui.options.hide();
-            this.ui.options.filter('.option-' + val).show();
-        },
+        
 
-        'click @ui.save': function (e) {
+        'click @ui.test': function (e) {
             e.preventDefault();
 
-            let val = this.ui.value.filter(':checked').val();
 
             if (!this.ui.form[0].checkValidity()) {
                 $('<input type="submit">').hide().appendTo(this.ui.form).click().remove();
@@ -38,25 +30,22 @@ module.exports = Mn.View.extend({
             }
 
             let view = this;
-            let data = this.ui.form.serializeJSON({
-                parseBooleans: true
-            });
-            data.id  = this.model.get('id');
+            let data = this.ui.form.serializeJSON();
 
             this.ui.buttons.prop('disabled', true).addClass('btn-disabled');
-            App.Api.Settings.update(data)
+            App.Api.LDAP.test(data)
                 .then(result => {
-                    view.model.set(result);
-                    App.UI.closeModal();
+                    this.ui.alert.removeClass('alert-danger collapse').addClass('alert-success').html('LDAP Working Correctly');
                 })
                 .catch(err => {
-                    alert(err.message);
+                    this.ui.alert.removeClass('alert-success collapse').addClass('alert-danger').html(err.message);
+                }).finally(()=>{
                     this.ui.buttons.prop('disabled', false).removeClass('btn-disabled');
                 });
         }
     },
 
     onRender: function () {
-        this.ui.value.trigger('change');
+        //this.ui.value.trigger('change');
     }
 });

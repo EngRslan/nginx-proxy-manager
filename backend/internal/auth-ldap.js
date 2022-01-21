@@ -1,156 +1,153 @@
 
-const ldap		 = require('ldapjs');
-const settingsModel = require('../models/setting')
-const logger        = require('./../logger').global
+const ldap		        = require('ldapjs');
+const settingsModel     = require('../models/setting');
+const logger            = require('./../logger').global;
+const { EOL }           = require('os');
+const error             = require('../lib/error');
+
+const Internals = {
+    CleanClient : (client)=>{
+        return new Promise((resolve,reject)=>{
+            if(client){
+                client.removeAllListeners();
+            }
+
+            resolve();
+        })
+    }
+}
 const LDAP_Manager = {
-    loginLDap:(username,password)=>{
+    
+	LDAPAuthenticateUser: async (username,password)=>{
+        var ldapCLient;
 
-		return new Promise((resolve,reject)=>{
-			var ldapCLient = ldap.createClient({
-				url : 'ldap://192.168.10.10:389',
-                bindDN : 'ibind@proeyes.org',
-                bindCredentials : 'Me@123456',
-                connectTimeout :10000
-			});
-            let attr = username.includes("@")?'userPrincipalName':'samaccountname';
-            ldapCLient.on('connectTimeout',(e)=>{
-                console.log('connectTimeout',e)
-                reject('Connection Timeout');
-            })
-            ldapCLient.on('connectRefused',(e)=>{
-                console.log('connectRefused',e)
-                reject('Connection Refused');
-            })
-            ldapCLient.on('connectRefused',(e)=>{
-                console.log('connectRefused',e)
-                reject('Connection Error');
-            })
-            ldapCLient.on('socketTimeout',(e)=>{
-                console.log('socketTimeout',e)
-                reject('Socket Timeout');
-            })
-            ldapCLient.on('error',(e)=>{
-                console.log('error',e)
-                reject('error');
-            })
-            // ldapCLient.on('resultError',(e)=>{
-            //     console.log('resultError',e)
-            //     reject('resultError');
-            // })
-            this.LDAPSearch()
-            ldapCLient.on('timeout',(e)=>{
-                console.log('timeout',e)
-                reject('timeout');
-            })
-            ldapCLient.on('end',(e)=>{
-                console.log('end',e)
-                reject('end');
-            })
+        try {
+            var setting = await settingsModel.query().where({id:'ldap-auth'}).first();
+            if(!setting || setting.value !== 'enable')
+                throw new Error("LDAP Not Configured Or Not Enabled");
 
-            console.log('search Started')
-            ldapCLient.search('CN=Users,DC=proeyes,DC=org',{ 
-                filter:'(&(objectClass=user)('+attr+'='+username+'))',
-                scope:'sub',
-                sizeLimit:1
-
-             },(err,res)=>{
-                console.log('search back')
-                 if(err){
-                    reject('Error Occured');
-                 }else{
-                    res.on('searchEntry',(entry)=>{
-                        console.log('entry: ' + JSON.stringify(entry.object));
-                        ldapCLient.bind(entry.dn,password,function(err,res){
-                            if(err){
-                                errorMessage = "Unknown error please try again later";
+            var clientOpts = {
+                url : `ldap${setting.meta.transport === 'ssl'?'s':''}://${setting.meta.host}:${setting.meta.port}`,
+                bindDN : setting.meta.bind_username,
+                bindCredentials : setting.meta.bind_secret,
+                connectTimeout :10000 ,
+                
+            };
             
-                                if(err instanceof ldap.InvalidCredentialsError){
-                                    errorMessage = "Invalid Username/Password";
-                                }
-                                reject(errorMessage);
-                            }
-                            else{
-                                resolve();
-                            }
+            if(setting.meta.transport === 'ssl'){
+                clientOpts.tlsOptions = {
+                    ca:setting.meta.ca,
+                    rejectUnauthorized: !(setting.meta.skip_cert_verify || false)
+                }
+            }
             
-                            ldapCLient.unbind();
-                        })
-                    });
-                    res.on('searchRequest', (searchRequest) => {
-                        console.log('searchRequest: ', searchRequest.messageID);
-                      });
-                    res.on('searchReference', function (referral) {
-                        console.log('Referral', referral);
-                    });
-                    res.on('error',(err)=>{
-                        console.log('error',err)
-                        reject('Error Occured');
-                    });
-                    res.on('end', (result) => {
-                        //if(result.sent)
-                        console.log('matchedDN',result.matchedDN);
-                        // reject('status: ' + result.errorMessage);
+            ldapCLient = ldap.createClient(clientOpts);
+                ldapCLient.once('error',(err)=>{console.log(err);throw new Error('dd')})
+                ldapCLient.once('connectRefused',(err)=>{console.log(err);throw new Error('dd')})
+                ldapCLient.once('connectTimeout',(err)=>{console.log(err);throw new Error('dd')})
+                ldapCLient.once('connectError',(err)=>{console.log(err);throw new Error('dd')})
+                ldapCLient.once('setupError',(err)=>{console.log(err);throw new Error('dd')})
+                ldapCLient.once('socketTimeout',(err)=>{console.log(err);throw new Error('dd')})
+                ldapCLient.once('timeout',(err)=>{console.log(err);throw new Error('dd')})
+            if(setting.meta.transport === 'start-tls'){
+                await new Promise((resolve,reject)=>{
 
-                      });
-                 }
-                    
-             })
-			
-		})
-	},
-	LDAPAuthenticateUser:(username,password)=>{
-		return new Promise((resolve,reject)=>{
+                ldapCLient.once('error',reject)
+                ldapCLient.once('connectRefused',reject)
+                ldapCLient.once('connectTimeout',reject)
+                ldapCLient.once('connectError',reject)
+                ldapCLient.once('setupError',reject)
+                ldapCLient.once('socketTimeout',reject)
+                ldapCLient.once('timeout',reject)
 
-            settingsModel
-                .query()
-                .where({id:'ldap-auth'})
-                .first()
-                .then((setting)=>{
-                    var ldapCLient = ldap.createClient({
-                        url : `ldap://${setting.meta.host}:${setting.meta.port}`,
-                        bindDN : setting.meta.bind_username,
-                        bindCredentials : setting.meta.bind_secret,
-                        connectTimeout :10000 
+                    ldapCLient.starttls({
+                        ca:setting.meta.ca,
+                        rejectUnauthorized: !(setting.meta.skip_cert_verify || false)
+                    },[],(err)=>{
+
+                        if(err){
+                            reject(err)
+                        }else{
+                            resolve()
+                        }
                     });
-        
-                    ldapCLient.on('error',(e)=>{
-                        logger.debug("Ldap Client : " + e)
-                        reject(e);
-                    })
-
-                    LDAP_Manager.LDAPAuthenticate(ldapCLient,setting.meta.base_dn,username,password,setting.meta.scope,setting.meta.user_naming_attr).then(res=>{
-                        resolve({
-                            username : res[setting.meta.user_naming_attr],
-                        })
-                    }).catch(err=>{
-                        reject(err)
-                    })
                 })
-		})
+            }
+            
+
+            var containers = [];
+                    
+            if(setting.meta.search_containers){
+                    containers = setting.meta.search_containers.split(EOL);
+            }
+
+            if(!containers || containers.length <= 0){
+                containers = [setting.meta.base_dn]
+            }
+
+            for(var container of containers){ 
+                logger.debug("LDAP Authenticate Using Contanienr "+ container)
+                try{
+                    var res = await LDAP_Manager.LDAPAuthenticate(ldapCLient,container,username,password,setting.meta.scope,setting.meta.user_naming_attr);
+                    await Internals.CleanClient(ldapCLient)
+                    return { username : res[setting.meta.user_naming_attr] };
+                }catch(authErr){
+                   console.log('iam')
+                    if(authErr instanceof ldap.NoSuchObjectError && containers.indexOf(container) !== containers.length - 1)
+                    {
+                        continue;
+                    }
+                    throw authErr;
+                }
+            }
+
+        }catch(err){
+            logger.debug("LDAP Error : "+ err.toString())
+            await Internals.CleanClient(ldapCLient)
+            throw new error.ConfigurationError(err.toString());
+        }
 	},
     LDAPAuthenticate:(client,base, identity, password,scope,user_naming_attr)=>{
         return new Promise((resolve,reject)=>{
+            console.log('here123')
+        
+            client.once('error',reject)
+            client.once('connectRefused',reject)
+            client.once('connectTimeout',reject)
+            client.once('connectError',reject)
+            client.once('setupError',reject)
+            client.once('socketTimeout',reject)
+            client.once('timeout',reject)
+            
             LDAP_Manager.LDAPSearch(client,base,{scope: scope||'sub', filter: `(${user_naming_attr || 'CN'}=${identity})`}).then(result=>{
                 if(result.entries.length != 1){
-                    reject('Invalid Username/Password')
+                    reject(new ldap.NoSuchObjectError("Invalid Username/Password"))
                 }
+                console.log('here')
                 client.bind(result.entries[0].dn, password,(err)=>{
+                console.log('here2')
+
                     if(err){
-                        reject(err.name)
+
+                        reject(err)
                     }else{
                         resolve(result.entries[0].object);
                     }
                 })
                 
             }).catch(err=>{
-                reject(err.name);
+                reject(err);
             })
             
         })
     },
+    
     LDAPSearch:(client,base, options)=>{
         return new Promise((resolve, reject) => { 
+
             var searchCallback = function (err, result) {
+            console.log('heresearch2')
+
                 var r = {
                     entries: [],
                     references: []
@@ -176,6 +173,8 @@ const LDAP_Manager = {
                     }
                 });
             };
+            console.log('heresearch')
+
             client.search(base,options,searchCallback);
         });
     }

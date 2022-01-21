@@ -57,7 +57,7 @@ app.use('/', require('./routes/api/main'));
 // no stacktraces leaked to user
 // eslint-disable-next-line
 app.use(function (err, req, res, next) {
-
+	console.log(err)
 	let payload = {
 		error: {
 			code:    err.status,

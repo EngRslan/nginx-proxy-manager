@@ -282,7 +282,9 @@
       "default-site-404": "404 Page",
       "default-site-html": "Custom Page",
       "default-site-redirect": "Redirect",
-      "ldap-auth":"LDAP Authentication"
+      "ldap-auth":"LDAP Authentication",
+      "test-ldap":"Test LDAP",
+      "test" : "Test"
     }
   }
 }

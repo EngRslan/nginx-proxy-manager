@@ -77,6 +77,36 @@
           "$ref": "#/properties"
         }
       }
+    },
+    {
+      "title": "Test LDAP Settings",
+      "description": "Test LDAP Settings",
+      "href": "/settings/ldap",
+      "access": "private",
+      "method": "POST",
+      "rel": "update",
+      "http_header": {
+        "$ref": "../examples.json#/definitions/auth_header"
+      },
+      "schema": {
+        "type": "object",
+        "properties": {
+          "username": {
+          },
+          "password": {
+          }
+        }
+      },
+      "targetSchema": {
+        "properties": {
+          "username":{
+            "$ref": "#/definitions/description"
+          },
+          "password":{
+            "$ref": "#/definitions/description"
+          }
+        }
+      }
     }
   ],
   "properties": {

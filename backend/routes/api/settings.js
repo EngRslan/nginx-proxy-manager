@@ -3,6 +3,7 @@ const validator       = require('../../lib/validator');
 const jwtdecode       = require('../../lib/express/jwt-decode');
 const internalSetting = require('../../internal/setting');
 const apiValidator    = require('../../lib/validator/api');
+const ldap			  = require('../../internal/auth-ldap');
 
 let router = express.Router({
 	caseSensitive: true,
@@ -33,6 +34,30 @@ router
 			})
 			.catch(next);
 	});
+
+	/**
+	 * Test LDAP setting
+	 *
+	 * /api/settings/ldap-test
+	 */
+router
+	.route('/ldaptest')
+	.options((req, res) => {
+		res.sendStatus(204);
+	})
+	.all(jwtdecode())
+
+	.post((req,res,next)=>{
+		apiValidator({$ref: 'endpoints/settings#/links/2/schema'},req.body)
+		.then((payload)=>{
+			return ldap.LDAPAuthenticateUser(payload.username,payload.password)
+		})
+		.then((result)=>{
+			res.status(200)
+			.send(result);
+		})
+		.catch(next);
+	})
 
 /**
  * Specific setting
@@ -92,5 +117,7 @@ router
 			})
 			.catch(next);
 	});
+
+
 
 module.exports = router;
